@@ -1,11 +1,11 @@
 """
-alert.py — Lambda finance-alert  [FASE 2 — pendiente implementar]
-Trigger: EventBridge cron diario 8pm Peru (01:00 UTC)
+alert.py — Lambda finance-alert  [Phase 2 — not yet implemented]
+Trigger: EventBridge cron daily 8pm Peru (01:00 UTC)
 
-Compara gastos del mes vs presupuesto hardcodeado.
-Si supera 80%, manda alerta a Telegram.
+Compares current month spending against hardcoded budgets.
+Sends a Telegram alert if spending exceeds 80%.
 
-Presupuestos (env vars):
+Budget env vars:
   BUDGET_PAREJA  — default 3000
   BUDGET_MANTYS  — default 500
 """
@@ -17,6 +17,6 @@ logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
-    # TODO Fase 2: leer Google Sheets, comparar vs presupuesto, enviar alerta si > 80%
-    logger.info("finance-alert triggered (Fase 2 pendiente)")
+    # TODO Phase 2: read Google Sheets, compare vs budget, alert if > 80%
+    logger.info("finance-alert triggered (Phase 2 pending)")
     return {"statusCode": 200, "body": "alert stub"}

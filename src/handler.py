@@ -1,13 +1,12 @@
 """
 handler.py — Lambda finance-handler
-Recibe webhooks de Telegram, parsea mensajes y escribe en Google Sheets.
+Receives Telegram webhooks, parses messages, and writes to Google Sheets.
 
 Trigger: POST /webhook (API Gateway HTTP API)
 """
 
 import json
 import logging
-import os
 from datetime import date
 
 from parser import parse_message
@@ -42,7 +41,7 @@ def _format_summary(data: dict, scope_hint: str | None) -> str:
     return "\n".join(lines)
 
 
-def _handle_registro(result, update: dict) -> str:
+def _handle_registro(result) -> str:
     today = date.today().strftime("%d/%m/%Y")
     sh    = get_sheet()
 
@@ -68,7 +67,7 @@ def _handle_registro(result, update: dict) -> str:
         ])
         return f"✅ Gasto pareja: *{result.category}* — S/ {result.amount:.2f} ({result.paid_by})"
 
-    # ingreso
+    # income
     if result.scope == "mantys":
         append_row(sh, "MANTYS_Ingresos", [
             today, result.pedido_num, result.cliente,
@@ -77,7 +76,7 @@ def _handle_registro(result, update: dict) -> str:
         label = f"{result.description} ({result.pedido_num})" if result.pedido_num else result.description
         return f"✅ Ingreso MANTYS: {label} — S/ {result.amount:.2f}"
 
-    # ingreso pareja
+    # pareja income
     fuente = "otro"
     t = result.raw.lower()
     if "sueldo" in t or "salario" in t:
@@ -91,7 +90,7 @@ def _handle_registro(result, update: dict) -> str:
 
 
 def lambda_handler(event, context):
-    # Telegram espera siempre 200 — errores internos se reportan al usuario via mensaje
+    # Always return 200 to Telegram — errors are reported back to the user via message
     try:
         body   = json.loads(event.get("body") or "{}")
         update = body
@@ -119,11 +118,11 @@ def lambda_handler(event, context):
             reply(update, summary)
             return {"statusCode": 200, "body": "ok"}
 
-        response_text = _handle_registro(result, update)
+        response_text = _handle_registro(result)
         reply(update, response_text)
 
     except Exception as exc:
-        logger.exception("Error en finance-handler: %s", exc)
+        logger.exception("Unhandled error in finance-handler: %s", exc)
         try:
             body    = json.loads(event.get("body") or "{}")
             chat_id = body.get("message", {}).get("chat", {}).get("id")

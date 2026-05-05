@@ -1,28 +1,28 @@
-# samconfig.toml.example — Copia a samconfig.toml y completa los valores reales.
-# samconfig.toml está en .gitignore — NUNCA commitear con valores reales.
+# samconfig.toml.example — Copy to samconfig.toml and fill in your real values.
+# samconfig.toml is in .gitignore — NEVER commit with real values.
 
 version = 0.1
 
 [default.global.parameters]
 stack_name = "finance-lambda"
-region     = "us-east-1"   # cambiar a tu región preferida
+region     = "us-east-1"   # change to your preferred region
 
 [default.build.parameters]
-cached = true
+cached   = true
 parallel = true
 
 [default.deploy.parameters]
-capabilities    = "CAPABILITY_IAM"
+capabilities      = "CAPABILITY_IAM"
 confirm_changeset = true
-resolve_s3      = true
-s3_prefix       = "finance-lambda"
+resolve_s3        = true
+s3_prefix         = "finance-lambda"
 
-# Completar con tus valores reales (sin espacios alrededor del =)
+# Fill in your real values (no spaces around =)
 parameter_overrides = [
-  "FinanceSheetId=TU_SHEET_ID_AQUI",
+  "FinanceSheetId=YOUR_SHEET_ID_HERE",
   "FinanceSaKeyJson={\"type\":\"service_account\",\"project_id\":\"...\"}",
-  "TelegramBotToken=TU_BOT_TOKEN_AQUI",
-  "TelegramChatId=TU_CHAT_ID_AQUI",
+  "TelegramBotToken=YOUR_BOT_TOKEN_HERE",
+  "TelegramChatId=YOUR_CHAT_ID_HERE",
   "BudgetPareja=3000",
   "BudgetMantys=500",
   "Environment=prod"

@@ -1,6 +1,6 @@
 """
-parser.py — Lógica de parsing de mensajes de Telegram.
-Portado desde finance-bot-skill.py (RPi) para correr en Lambda.
+parser.py — Telegram message parsing logic.
+Ported from finance-bot-skill.py (RPi) to run on Lambda.
 """
 
 import re
@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-# ─── Categorías ───────────────────────────────────────────────────────────────
+# ─── Categories ───────────────────────────────────────────────────────────────
 
 MANTYS_CATS = {
     "filamento":    ["filamento", "pla", "petg", "resina", "rollo"],
@@ -64,11 +64,11 @@ CLIENTES_CONOCIDOS = {
 }
 
 
-# ─── Dataclass resultado ──────────────────────────────────────────────────────
+# ─── Result dataclass ─────────────────────────────────────────────────────────
 
 @dataclass
 class ParseResult:
-    tipo: str           # "gasto" | "ingreso" | "resumen"
+    tipo: str              # "gasto" | "ingreso" | "resumen"
     scope: Optional[str]   # "mantys" | "pareja" | "personal" | None
     amount: Optional[float]
     category: Optional[str]
@@ -76,12 +76,12 @@ class ParseResult:
     paid_by: str
     pedido_num: str
     cliente: str
-    scope_hint: Optional[str]   # para resumen: None = ambos, "mantys" = solo mantys
+    scope_hint: Optional[str]  # for resumen: None = both, "mantys" = mantys only
     raw: str
-    error: Optional[str]        # mensaje de error si parsing falla
+    error: Optional[str]       # set when parsing fails; handler sends this to the user
 
 
-# ─── Funciones de detección ───────────────────────────────────────────────────
+# ─── Detection helpers ────────────────────────────────────────────────────────
 
 def _clean_message(text: str) -> str:
     return re.sub(r"^/\w+\s*", "", text).strip()
@@ -111,7 +111,7 @@ def _detect_scope(text: str) -> Optional[str]:
     if has_pareja and not has_mantys:
         return "pareja"
     if has_mantys and has_pareja:
-        return "mantys"
+        return "mantys"  # MANTYS takes priority when both match
     return None
 
 
@@ -132,8 +132,10 @@ def _detect_category(text: str, scope: str) -> str:
 
 def _extract_scope_arg(text: str):
     """
-    Detecta scope y categoría explícitos al inicio.
-    "pareja comida 85 mercado" → ("pareja", "comida", "85 mercado")
+    Detects explicit scope and category at the start of the message.
+    "pareja comida 85 mercado" -> ("pareja", "comida", "85 mercado")
+    "pareja 280 alquiler"      -> ("pareja", None, "280 alquiler")
+    "280 alquiler"             -> (None, None, "280 alquiler")
     """
     words = text.strip().split()
     scope = None
@@ -178,14 +180,11 @@ def _detect_paid_by(text: str, default: str = "Cristian") -> str:
     return default
 
 
-# ─── Entry point ──────────────────────────────────────────────────────────────
+# ─── Public API ───────────────────────────────────────────────────────────────
 
 def parse_message(raw_message: str, sender_name: str = "Cristian") -> ParseResult:
-    """
-    Parsea un mensaje de Telegram y retorna un ParseResult.
-    Este es el único punto de entrada que usa handler.py.
-    """
-    # Detectar intención de tipo antes de limpiar prefijos de comando
+    """Parse a Telegram message and return a ParseResult. Single entry point for handler.py."""
+    # Detect type intent before stripping command prefixes
     forced_tipo = None
     if re.match(r"^/ingreso\b", raw_message, re.IGNORECASE):
         forced_tipo = "ingreso"
@@ -194,7 +193,6 @@ def parse_message(raw_message: str, sender_name: str = "Cristian") -> ParseResul
 
     message = _clean_message(raw_message)
 
-    # Comando resumen
     if message.lower().startswith("resumen"):
         scope_hint = "mantys" if "mantys" in message.lower() else None
         return ParseResult(
@@ -211,13 +209,12 @@ def parse_message(raw_message: str, sender_name: str = "Cristian") -> ParseResul
             error=None,
         )
 
-    # Scope y categoría explícitos al inicio: "pareja comida 85 mercado"
     scope_arg, cat_arg, message = _extract_scope_arg(message)
 
     tipo  = forced_tipo if forced_tipo else _detect_type(message)
     scope = scope_arg if scope_arg else _detect_scope(message)
 
-    # Cliente conocido implica MANTYS
+    # A known client name implies MANTYS
     if scope is None:
         cliente_hint, _ = _detect_known_client(message)
         if cliente_hint:
@@ -245,7 +242,7 @@ def parse_message(raw_message: str, sender_name: str = "Cristian") -> ParseResul
 
     cat = cat_arg if cat_arg else _detect_category(message, scope)
 
-    # Datos adicionales para ingresos MANTYS
+    # Extra fields for MANTYS income entries
     pedido_num = ""
     cliente    = ""
     if tipo == "ingreso" and scope == "mantys":

@@ -1,6 +1,7 @@
 """
-sheets.py — Google Sheets client para Lambda.
-Diferencia clave vs RPi: carga credenciales desde env var JSON (no desde archivo).
+sheets.py — Google Sheets client for Lambda.
+Key difference from the RPi version: credentials are loaded from a JSON env var,
+not from a file path.
 """
 
 import json
@@ -52,10 +53,7 @@ def _is_current_month(record: dict, date_key: str = "Fecha") -> bool:
 
 
 def get_monthly_summary(sh) -> dict:
-    """
-    Retorna un dict con totales del mes actual para MANTYS y Pareja.
-    Usado por handler.py (comando 'resumen') y alert.py.
-    """
+    """Return current-month totals for MANTYS and Pareja. Used by handler (resumen command) and alert."""
     today = date.today()
 
     def tab_total(tab_name: str, amount_key: str = "Monto", estado_key: str = None, estado_val: str = None) -> float:
@@ -76,29 +74,22 @@ def get_monthly_summary(sh) -> dict:
     pareja_ingresos = tab_total("Pareja_Ingresos")
 
     return {
-        "month":            today.strftime("%B %Y"),
-        "mantys_gastos":    mantys_gastos,
-        "mantys_ingresos":  mantys_ingresos,
-        "mantys_ganancia":  mantys_ingresos - mantys_gastos,
-        "pareja_gastos":    pareja_gastos,
-        "pareja_ingresos":  pareja_ingresos,
-        "pareja_balance":   pareja_ingresos - pareja_gastos,
+        "month":           today.strftime("%B %Y"),
+        "mantys_gastos":   mantys_gastos,
+        "mantys_ingresos": mantys_ingresos,
+        "mantys_ganancia": mantys_ingresos - mantys_gastos,
+        "pareja_gastos":   pareja_gastos,
+        "pareja_ingresos": pareja_ingresos,
+        "pareja_balance":  pareja_ingresos - pareja_gastos,
     }
 
 
 def get_monthly_totals_by_scope(sh, scope: str) -> dict:
-    """
-    Retorna totales del mes para un scope específico ('mantys' o 'pareja').
-    Usado por alert.py para comparar contra presupuesto.
-    """
-    today = date.today()
-
+    """Return current-month spending for a given scope. Used by alert to compare against budget."""
     if scope == "mantys":
-        gastos_tab   = "MANTYS_Gastos"
-        ingresos_tab = "MANTYS_Ingresos"
+        gastos_tab = "MANTYS_Gastos"
     else:
-        gastos_tab   = "Pareja_Gastos"
-        ingresos_tab = "Pareja_Ingresos"
+        gastos_tab = "Pareja_Gastos"
 
     ws_g    = sh.worksheet(gastos_tab)
     records = ws_g.get_all_records()
@@ -109,4 +100,4 @@ def get_monthly_totals_by_scope(sh, scope: str) -> dict:
         if _is_current_month(r)
     )
 
-    return {"gastos": gastos, "month": today.strftime("%B %Y")}
+    return {"gastos": gastos, "month": date.today().strftime("%B %Y")}

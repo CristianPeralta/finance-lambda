@@ -1,11 +1,10 @@
 """
-telegram.py — Helper para enviar mensajes a Telegram desde Lambda.
+telegram.py — Telegram Bot API helpers for Lambda.
 """
 
 import json
 import os
 import urllib.request
-import urllib.parse
 
 
 def _bot_url(method: str) -> str:
@@ -31,13 +30,13 @@ def send_message(chat_id, text: str, parse_mode: str = "Markdown") -> None:
 
 
 def reply(update: dict, text: str, parse_mode: str = "Markdown") -> None:
-    """Responde al chat del update recibido."""
+    """Send a message back to the chat that originated the update."""
     chat_id = update.get("message", {}).get("chat", {}).get("id")
     if chat_id:
         send_message(chat_id, text, parse_mode)
 
 
 def notify(text: str) -> None:
-    """Envía mensaje al chat configurado en TELEGRAM_CHAT_ID (para alertas y reportes)."""
+    """Send a message to the chat configured in TELEGRAM_CHAT_ID (alerts and scheduled reports)."""
     chat_id = os.environ["TELEGRAM_CHAT_ID"]
     send_message(chat_id, text)

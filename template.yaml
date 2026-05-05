@@ -1,40 +1,40 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  finance-lambda — Sistema de finanzas personal cloud-native.
-  Telegram bot → Lambda → Google Sheets.
-  EventBridge crons para alertas y resumen semanal.
+  finance-lambda — Cloud-native personal finance system.
+  Telegram bot -> Lambda -> Google Sheets.
+  EventBridge crons for budget alerts and weekly summaries.
 
-# ─── Parámetros (valores reales solo en samconfig.toml, nunca en el repo) ─────
+# ─── Parameters (real values live in samconfig.toml only, never in the repo) ──
 
 Parameters:
   FinanceSheetId:
     Type: String
-    Description: ID del Google Sheet (visible en la URL del sheet)
+    Description: Google Sheet ID (visible in the sheet URL)
 
   FinanceSaKeyJson:
     Type: String
     NoEcho: true
-    Description: Contenido completo del JSON del service account (una sola linea)
+    Description: Full contents of the service account JSON, minified to a single line
 
   TelegramBotToken:
     Type: String
     NoEcho: true
-    Description: Token del bot de Telegram (BotFather)
+    Description: Telegram bot token from BotFather
 
   TelegramChatId:
     Type: String
-    Description: Chat ID donde se envian notificaciones y alertas
+    Description: Chat ID where notifications and alerts are sent
 
   BudgetPareja:
     Type: String
     Default: "3000"
-    Description: Presupuesto mensual pareja en soles
+    Description: Monthly budget for Pareja in soles
 
   BudgetMantys:
     Type: String
     Default: "500"
-    Description: Presupuesto mensual MANTYS en soles
+    Description: Monthly budget for MANTYS in soles
 
   Environment:
     Type: String
@@ -57,23 +57,23 @@ Globals:
         BUDGET_PAREJA:       !Ref BudgetPareja
         BUDGET_MANTYS:       !Ref BudgetMantys
 
-# ─── Recursos ─────────────────────────────────────────────────────────────────
+# ─── Resources ────────────────────────────────────────────────────────────────
 
 Resources:
 
-  # API Gateway HTTP API (free tier 12 meses, luego $1/M requests)
+  # HTTP API Gateway (free tier 12 months, then $1/M requests)
   FinanceApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: !Ref Environment
       Description: Finance Lambda API — Telegram webhook endpoint
 
-  # ── Lambda 1: Webhook Telegram ────────────────────────────────────────────
+  # ── Lambda 1: Telegram webhook ────────────────────────────────────────────
   FinanceHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub finance-handler-${Environment}
-      Description: Recibe webhooks de Telegram, registra gastos/ingresos en Google Sheets
+      Description: Receives Telegram webhooks and records expenses/income in Google Sheets
       CodeUri: src/
       Handler: handler.lambda_handler
       Events:
@@ -84,12 +84,12 @@ Resources:
             Path: /webhook
             Method: POST
 
-  # ── Lambda 2: Resumen semanal (Fase 2) ───────────────────────────────────
+  # ── Lambda 2: Weekly summary (Phase 2) ───────────────────────────────────
   FinanceWeeklyFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub finance-weekly-${Environment}
-      Description: "[Fase 2] Resumen semanal automatico — lunes 8am Peru"
+      Description: "[Phase 2] Automatic weekly summary — Monday 8am Peru"
       CodeUri: src/
       Handler: weekly.lambda_handler
       Events:
@@ -97,17 +97,17 @@ Resources:
           Type: ScheduleV2
           Properties:
             Name: !Sub finance-weekly-schedule-${Environment}
-            Description: Lunes 8am Peru (13:00 UTC)
+            Description: Monday 8am Peru (13:00 UTC)
             ScheduleExpression: "cron(0 13 ? * MON *)"
             ScheduleExpressionTimezone: "America/Lima"
             State: ENABLED
 
-  # ── Lambda 3: Alerta de presupuesto (Fase 2) ─────────────────────────────
+  # ── Lambda 3: Budget alert (Phase 2) ─────────────────────────────────────
   FinanceAlertFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub finance-alert-${Environment}
-      Description: "[Fase 2] Alerta diaria si gastos superan 80% del presupuesto — 8pm Peru"
+      Description: "[Phase 2] Daily alert when spending exceeds 80% of budget — 8pm Peru"
       CodeUri: src/
       Handler: alert.lambda_handler
       Events:
@@ -115,7 +115,7 @@ Resources:
           Type: ScheduleV2
           Properties:
             Name: !Sub finance-alert-schedule-${Environment}
-            Description: Diario 8pm Peru (01:00 UTC siguiente dia)
+            Description: Daily 8pm Peru (01:00 UTC next day)
             ScheduleExpression: "cron(0 1 * * ? *)"
             ScheduleExpressionTimezone: "America/Lima"
             State: ENABLED
@@ -125,8 +125,8 @@ Resources:
 Outputs:
   WebhookUrl:
     Description: >
-      URL del webhook — registrar en Telegram con:
-      curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<ESTA_URL>"
+      Webhook URL — register with Telegram using:
+      curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<THIS_URL>"
     Value: !Sub "https://${FinanceApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/webhook"
 
   HandlerFunctionArn:
