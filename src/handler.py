@@ -76,6 +76,13 @@ def _handle_registro(result) -> str:
         label = f"{result.description} ({result.pedido_num})" if result.pedido_num else result.description
         return f"✅ Ingreso MANTYS: {label} — S/ {result.amount:.2f}"
 
+    # personal income
+    if result.scope == "personal":
+        append_row(sh, "Personal_Ingresos", [
+            today, result.description, result.amount, result.raw,
+        ])
+        return f"✅ Ingreso personal: S/ {result.amount:.2f} — {result.description}"
+
     # pareja income
     fuente = "otro"
     t = result.raw.lower()
@@ -101,6 +108,11 @@ def lambda_handler(event, context):
         sender      = message_obj.get("from", {}).get("first_name", "Cristian")
 
         if not text or not chat_id:
+            return {"statusCode": 200, "body": "ok"}
+
+        if text.lower() in ("/start", "/help", "/ayuda"):
+            from parser import HELP_TEXT
+            reply(update, HELP_TEXT)
             return {"statusCode": 200, "body": "ok"}
 
         logger.info("msg from %s: %s", sender, text)
