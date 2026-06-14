@@ -7,7 +7,8 @@ Trigger: POST /webhook (API Gateway HTTP API)
 
 import json
 import logging
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from parser import parse_message
 from sheets import get_sheet, append_row, get_monthly_summary
@@ -42,7 +43,7 @@ def _format_summary(data: dict, scope_hint: str | None) -> str:
 
 
 def _handle_registro(result) -> str:
-    today = date.today().strftime("%d/%m/%Y")
+    today = datetime.now(ZoneInfo("America/Lima")).strftime("%d/%m/%Y")
     sh    = get_sheet()
 
     # MANTYS   : Fecha, Tipo, Descripcion, Categoria, Pedido_num, Cliente, Monto, Estado, Pagado_por, Mensaje_original
