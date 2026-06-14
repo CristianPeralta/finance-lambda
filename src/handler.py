@@ -45,43 +45,50 @@ def _handle_registro(result) -> str:
     today = date.today().strftime("%d/%m/%Y")
     sh    = get_sheet()
 
+    # MANTYS   : Fecha, Tipo, Descripcion, Categoria, Pedido_num, Cliente, Monto, Estado, Pagado_por, Mensaje_original
+    # Pareja   : Fecha, Tipo, Descripcion, Categoria, Monto, Pagado_por, Fuente, Mensaje_original
+    # Cristian : Fecha, Tipo, Descripcion, Categoria, Monto, Mensaje_original
+    # Roxsy    : Fecha, Tipo, Descripcion, Categoria, Monto, Mensaje_original
+
     if result.tipo == "gasto":
         if result.scope == "mantys":
-            append_row(sh, "MANTYS_Gastos", [
-                today, result.description, result.category,
-                result.amount, result.paid_by, result.raw,
+            append_row(sh, "MANTYS", [
+                today, "gasto", result.description, result.category,
+                "", "", result.amount, "", result.paid_by, result.raw,
             ])
             return f"✅ Gasto MANTYS: *{result.category}* — S/ {result.amount:.2f} ({result.paid_by})"
 
-        if result.scope == "personal":
-            append_row(sh, "Personal_Gastos", [
-                today, result.description, result.category,
+        if result.scope in ("cristian", "roxsy"):
+            tab = result.scope.capitalize()
+            append_row(sh, tab, [
+                today, "gasto", result.description, result.category,
                 result.amount, result.raw,
             ])
-            return f"✅ Gasto personal: *{result.category}* — S/ {result.amount:.2f}"
+            return f"✅ Gasto {tab}: *{result.category}* — S/ {result.amount:.2f}"
 
         # pareja (default)
-        append_row(sh, "Pareja_Gastos", [
-            today, result.description, result.category,
-            result.amount, result.paid_by, result.raw,
+        append_row(sh, "Pareja", [
+            today, "gasto", result.description, result.category,
+            result.amount, result.paid_by, "", result.raw,
         ])
         return f"✅ Gasto pareja: *{result.category}* — S/ {result.amount:.2f} ({result.paid_by})"
 
     # income
     if result.scope == "mantys":
-        append_row(sh, "MANTYS_Ingresos", [
-            today, result.pedido_num, result.cliente,
-            result.description, result.amount, "cobrado", result.raw,
+        append_row(sh, "MANTYS", [
+            today, "ingreso", result.description, "",
+            result.pedido_num, result.cliente, result.amount, "cobrado", "", result.raw,
         ])
         label = f"{result.description} ({result.pedido_num})" if result.pedido_num else result.description
         return f"✅ Ingreso MANTYS: {label} — S/ {result.amount:.2f}"
 
-    # personal income
-    if result.scope == "personal":
-        append_row(sh, "Personal_Ingresos", [
-            today, result.description, result.amount, result.raw,
+    if result.scope in ("cristian", "roxsy"):
+        tab = result.scope.capitalize()
+        append_row(sh, tab, [
+            today, "ingreso", result.description, "",
+            result.amount, result.raw,
         ])
-        return f"✅ Ingreso personal: S/ {result.amount:.2f} — {result.description}"
+        return f"✅ Ingreso {tab}: S/ {result.amount:.2f} — {result.description}"
 
     # pareja income
     fuente = "otro"
@@ -90,8 +97,9 @@ def _handle_registro(result) -> str:
         fuente = "sueldo-cristian" if "cristian" in t else "sueldo-roxsy"
     elif "freelance" in t:
         fuente = "freelance"
-    append_row(sh, "Pareja_Ingresos", [
-        today, result.description, fuente, result.amount, result.raw,
+    append_row(sh, "Pareja", [
+        today, "ingreso", result.description, "",
+        result.amount, "", fuente, result.raw,
     ])
     return f"✅ Ingreso pareja: *{fuente}* — S/ {result.amount:.2f}"
 
@@ -114,6 +122,7 @@ def lambda_handler(event, context):
             from parser import HELP_TEXT
             reply(update, HELP_TEXT)
             return {"statusCode": 200, "body": "ok"}
+
 
         logger.info("msg from %s: %s", sender, text)
 
@@ -139,7 +148,7 @@ def lambda_handler(event, context):
             body    = json.loads(event.get("body") or "{}")
             chat_id = body.get("message", {}).get("chat", {}).get("id")
             if chat_id:
-                send_message(chat_id, f"❌ Error interno: {exc}")
+                send_message(chat_id, f"❌ Error interno [{type(exc).__name__}]: {exc}")
         except Exception:
             pass
 

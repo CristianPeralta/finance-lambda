@@ -29,7 +29,9 @@ PAREJA_CATS = {
                    "pollo", "arroz", "verdura", "viveres", "víveres", "chicharron", "chicharrón",
                    "anticucho", "ceviche", "menu", "menú", "lonche", "snack", "fruta", "pan",
                    "carne", "pescado", "leche", "huevo", "fideos", "papa", "tomate", "embutido",
-                   "bebida", "refresco", "jugo", "cafe", "café", "panaderia", "pollería", "polleria"],
+                   "bebida", "refresco", "jugo", "cafe", "café", "panaderia", "pollería", "polleria",
+                   "queso", "sandia", "sandía", "azucar", "azúcar", "mantequilla", "aceite",
+                   "atun", "atún", "galleta", "chocolate", "yogur", "helado", "sopa"],
     "servicios":  ["luz", "agua", "internet", "alquiler", "renta", "gas", "telefono", "celular"],
     "salud":      ["medico", "farmacia", "medicina", "clinica", "doctor", "dentista", "salud"],
     "ocio":       ["cine", "peliculas", "netflix", "spotify", "juego", "paseo", "salida", "ocio"],
@@ -55,21 +57,22 @@ CLIENTES_CONOCIDOS = {
     "alvaro": "#002",
 }
 
-VALID_SCOPES = ["pareja", "mantys", "personal"]
+VALID_SCOPES = ["pareja", "mantys", "cristian", "roxsy"]
 
 HELP_TEXT = (
     "Comandos disponibles:\n\n"
     "*Gastos:*\n"
     "/gasto pareja 85 comida mercado\n"
     "/gasto mantys 50 filamento\n"
-    "/gasto personal 30 spotify\n\n"
+    "/gasto cristian 30 spotify\n"
+    "/gasto roxsy 25 farmacia\n\n"
     "*Ingresos:*\n"
     "/ingreso mantys 120 pedido Victor\n"
     "/ingreso pareja 500 sueldo\n"
-    "/ingreso personal 200 freelance\n\n"
+    "/ingreso cristian 200 freelance\n\n"
     "*Resumen:*\n"
-    "resumen\n"
-    "resumen mantys"
+    "/resumen\n"
+    "/resumen mantys"
 )
 
 
@@ -95,14 +98,14 @@ class ParseResult:
 def _detect_category(text: str, scope: str) -> str:
     if scope == "mantys":
         cat_map, default = MANTYS_CATS, "otro-mantys"
-    elif scope == "personal":
-        cat_map, default = PERSONAL_CATS, "otros-personal"
+    elif scope in ("cristian", "roxsy"):
+        cat_map, default = PERSONAL_CATS, "otros"
     else:
         cat_map, default = PAREJA_CATS, "otro-pareja"
     t = text.lower()
     for cat, keywords in cat_map.items():
         for kw in keywords:
-            if kw in t:
+            if re.search(r"(?<!\w)" + re.escape(kw) + r"(?!\w)", t):
                 return cat
     return default
 
@@ -135,7 +138,7 @@ def parse_message(raw_message: str, sender_name: str = "Cristian") -> ParseResul
     lower = text.lower()
 
     # ── resumen ───────────────────────────────────────────────────────────────
-    if lower.startswith("resumen"):
+    if lower.startswith("resumen") or lower.startswith("/resumen"):
         scope_hint = "mantys" if "mantys" in lower else None
         return ParseResult(
             tipo="resumen", scope=None, amount=None, category=None,
