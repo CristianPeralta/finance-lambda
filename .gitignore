@@ -1,3 +1,6 @@
+# SDD artifacts
+.atl/
+
 # Secretos — NUNCA al repo
 .env
 samconfig.toml
