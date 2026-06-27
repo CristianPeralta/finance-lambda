@@ -7,8 +7,12 @@ Trigger: POST /webhook (API Gateway HTTP API)
 
 import json
 import logging
+import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+_USER1 = os.environ.get("FINANCE_USER1", "user1").lower()
+_USER2 = os.environ.get("FINANCE_USER2", "user2").lower()
 
 from parser import parse_message
 from sheets import get_sheet, append_row, get_monthly_summary
@@ -59,7 +63,7 @@ def _handle_registro(result) -> str:
             ])
             return f"✅ Gasto MANTYS: *{result.category}* — S/ {result.amount:.2f} ({result.paid_by})"
 
-        if result.scope in ("cristian", "roxsy"):
+        if result.scope in (_USER1, _USER2):
             tab = result.scope.capitalize()
             append_row(sh, tab, [
                 today, "gasto", result.description, result.category,
@@ -83,7 +87,7 @@ def _handle_registro(result) -> str:
         label = f"{result.description} ({result.pedido_num})" if result.pedido_num else result.description
         return f"✅ Ingreso MANTYS: {label} — S/ {result.amount:.2f}"
 
-    if result.scope in ("cristian", "roxsy"):
+    if result.scope in (_USER1, _USER2):
         tab = result.scope.capitalize()
         append_row(sh, tab, [
             today, "ingreso", result.description, "",

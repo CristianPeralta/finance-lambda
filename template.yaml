@@ -36,6 +36,16 @@ Parameters:
     Default: "500"
     Description: Monthly budget for MANTYS in soles
 
+  FinanceUser1:
+    Type: String
+    Default: "user1"
+    Description: First personal user scope (lowercase, matches Google Sheet tab name when capitalized)
+
+  FinanceUser2:
+    Type: String
+    Default: "user2"
+    Description: Second personal user scope (lowercase, matches Google Sheet tab name when capitalized)
+
   Environment:
     Type: String
     Default: prod
@@ -56,6 +66,8 @@ Globals:
         TELEGRAM_CHAT_ID:    !Ref TelegramChatId
         BUDGET_PAREJA:       !Ref BudgetPareja
         BUDGET_MANTYS:       !Ref BudgetMantys
+        FINANCE_USER1:       !Ref FinanceUser1
+        FINANCE_USER2:       !Ref FinanceUser2
 
 # ─── Resources ────────────────────────────────────────────────────────────────
 

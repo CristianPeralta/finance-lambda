@@ -25,5 +25,7 @@ parameter_overrides = [
   "TelegramChatId=YOUR_CHAT_ID_HERE",
   "BudgetPareja=3000",
   "BudgetMantys=500",
+  "FinanceUser1=user1",
+  "FinanceUser2=user2",
   "Environment=prod"
 ]

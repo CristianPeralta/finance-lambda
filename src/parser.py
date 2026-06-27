@@ -8,6 +8,7 @@ Supported commands:
   resumen mantys
 """
 
+import os
 import re
 from dataclasses import dataclass
 from typing import Optional
@@ -56,19 +57,22 @@ CLIENTES_CONOCIDOS = {
     # "nombre": "#001",
 }
 
-VALID_SCOPES = ["pareja", "mantys", "cristian", "roxsy"]
+_USER1 = os.environ.get("FINANCE_USER1", "user1").lower()
+_USER2 = os.environ.get("FINANCE_USER2", "user2").lower()
+
+VALID_SCOPES = ["pareja", "mantys", _USER1, _USER2]
 
 HELP_TEXT = (
     "Comandos disponibles:\n\n"
     "*Gastos:*\n"
-    "/gasto pareja 85 comida mercado\n"
-    "/gasto mantys 50 filamento\n"
-    "/gasto cristian 30 spotify\n"
-    "/gasto roxsy 25 farmacia\n\n"
+    f"/gasto pareja 85 comida mercado\n"
+    f"/gasto mantys 50 filamento\n"
+    f"/gasto {_USER1} 30 spotify\n"
+    f"/gasto {_USER2} 25 farmacia\n\n"
     "*Ingresos:*\n"
-    "/ingreso mantys 120 pedido Victor\n"
+    "/ingreso mantys 120 pedido #3\n"
     "/ingreso pareja 500 sueldo\n"
-    "/ingreso cristian 200 freelance\n\n"
+    f"/ingreso {_USER1} 200 freelance\n\n"
     "*Resumen:*\n"
     "/resumen\n"
     "/resumen mantys"
@@ -97,7 +101,7 @@ class ParseResult:
 def _detect_category(text: str, scope: str) -> str:
     if scope == "mantys":
         cat_map, default = MANTYS_CATS, "otro-mantys"
-    elif scope in ("cristian", "roxsy"):
+    elif scope in (_USER1, _USER2):
         cat_map, default = PERSONAL_CATS, "otros"
     else:
         cat_map, default = PAREJA_CATS, "otro-pareja"
