@@ -53,8 +53,7 @@ PERSONAL_CATS = {
 }
 
 CLIENTES_CONOCIDOS = {
-    "victor": "#001",
-    "alvaro": "#002",
+    # "nombre": "#001",
 }
 
 VALID_SCOPES = ["pareja", "mantys", "cristian", "roxsy"]
