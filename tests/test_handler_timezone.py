@@ -24,7 +24,7 @@ def _make_result(**kwargs):
         description="test",
         category="comida",
         amount=10.0,
-        paid_by="cristian",
+        paid_by="user1",
         pedido_num=None,
         cliente=None,
         raw="/gasto pareja 10 comida",
@@ -66,7 +66,7 @@ class TestHandlerTimezone:
             "Lambda is writing UTC date instead of Peru date."
         )
 
-    def test_cristian_gasto_writes_peru_date_after_7pm(self):
+    def test_user1_gasto_writes_peru_date_after_7pm(self):
         fake_now = datetime(2026, 6, 14, 2, 15, 0, tzinfo=ZoneInfo("UTC"))
         expected_date = "13/06/2026"
 
@@ -82,7 +82,7 @@ class TestHandlerTimezone:
 
             mock_dt.now.return_value = fake_now.astimezone(ZoneInfo("America/Lima"))
 
-            handler._handle_registro(_make_result(scope="cristian"))
+            handler._handle_registro(_make_result(scope="user1"))
 
         assert captured["row"][0] == expected_date
 

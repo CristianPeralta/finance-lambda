@@ -50,10 +50,10 @@ def _handle_registro(result) -> str:
     today = datetime.now(ZoneInfo("America/Lima")).strftime("%d/%m/%Y")
     sh    = get_sheet()
 
-    # MANTYS   : Fecha, Tipo, Descripcion, Categoria, Pedido_num, Cliente, Monto, Estado, Pagado_por, Mensaje_original
-    # Pareja   : Fecha, Tipo, Descripcion, Categoria, Monto, Pagado_por, Fuente, Mensaje_original
-    # Cristian : Fecha, Tipo, Descripcion, Categoria, Monto, Mensaje_original
-    # Roxsy    : Fecha, Tipo, Descripcion, Categoria, Monto, Mensaje_original
+    # MANTYS  : Fecha, Tipo, Descripcion, Categoria, Pedido_num, Cliente, Monto, Estado, Pagado_por, Mensaje_original
+    # Pareja  : Fecha, Tipo, Descripcion, Categoria, Monto, Pagado_por, Fuente, Mensaje_original
+    # _USER1  : Fecha, Tipo, Descripcion, Categoria, Monto, Mensaje_original
+    # _USER2  : Fecha, Tipo, Descripcion, Categoria, Monto, Mensaje_original
 
     if result.tipo == "gasto":
         if result.scope == "mantys":
@@ -99,7 +99,7 @@ def _handle_registro(result) -> str:
     fuente = "otro"
     t = result.raw.lower()
     if "sueldo" in t or "salario" in t:
-        fuente = "sueldo-cristian" if "cristian" in t else "sueldo-roxsy"
+        fuente = f"sueldo-{_USER1}" if _USER1 in t else f"sueldo-{_USER2}"
     elif "freelance" in t:
         fuente = "freelance"
     append_row(sh, "Pareja", [
@@ -118,7 +118,7 @@ def lambda_handler(event, context):
         message_obj = update.get("message", {})
         text        = (message_obj.get("text") or "").strip()
         chat_id     = message_obj.get("chat", {}).get("id")
-        sender      = message_obj.get("from", {}).get("first_name", "Cristian")
+        sender      = message_obj.get("from", {}).get("first_name", _USER1.capitalize())
 
         if not text or not chat_id:
             return {"statusCode": 200, "body": "ok"}

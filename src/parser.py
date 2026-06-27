@@ -121,8 +121,8 @@ def _detect_known_client(text: str):
     return None, None
 
 
-def _detect_paid_by(text: str, default: str = "Cristian") -> str:
-    return "Roxsy" if ("roxsy" in text.lower() or "ella" in text.lower()) else default
+def _detect_paid_by(text: str, default: str = _USER1.capitalize()) -> str:
+    return _USER2.capitalize() if (_USER2 in text.lower() or "ella" in text.lower()) else default
 
 
 def _err(msg: str, raw: str) -> ParseResult:
@@ -135,7 +135,7 @@ def _err(msg: str, raw: str) -> ParseResult:
 
 # ─── Public API ───────────────────────────────────────────────────────────────
 
-def parse_message(raw_message: str, sender_name: str = "Cristian") -> ParseResult:
+def parse_message(raw_message: str, sender_name: str = _USER1.capitalize()) -> ParseResult:
     """Parse a Telegram message and return a ParseResult."""
     text = raw_message.strip()
     lower = text.lower()

@@ -63,6 +63,24 @@ Tab names for `User1` and `User2` are the capitalized values of `FINANCE_USER1` 
 /resumen mantys                   → MANTYS only
 ```
 
+## User configuration
+
+This project is designed to work for any two users. All personal names are driven by two environment variables — nothing is hardcoded in the source:
+
+| Variable        | Description                                              | Example   |
+|-----------------|----------------------------------------------------------|-----------|
+| `FINANCE_USER1` | First personal user (lowercase). Used as bot scope and Google Sheet tab name (capitalized). | `alice`  |
+| `FINANCE_USER2` | Second personal user (lowercase). Same rules.           | `bob`     |
+
+These variables control:
+- Valid bot scopes: `/gasto alice ...`, `/gasto bob ...`
+- Google Sheet tab names: `Alice`, `Bob`
+- Paid-by detection in pareja income (`fuente: sueldo-alice`)
+- Default sender name when Telegram doesn't provide one
+- Examples shown in bot help text (`/help`)
+
+> **Google Sheets:** create tabs named exactly as `FINANCE_USER1.capitalize()` and `FINANCE_USER2.capitalize()` (e.g. `Alice` and `Bob`).
+
 ## Setup
 
 ### 1. Prerequisites
