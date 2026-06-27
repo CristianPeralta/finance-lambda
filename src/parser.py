@@ -161,7 +161,7 @@ def parse_message(raw_message: str, sender_name: str = _USER1.capitalize()) -> P
     # scope
     if not words or words[0].lower() not in VALID_SCOPES:
         return _err(
-            f"Especifica el alcance: pareja, mantys o personal.\n\n"
+            f"Especifica el alcance: pareja, mantys, {_USER1} o {_USER2}.\n\n"
             f"Ejemplo: /gasto pareja 85 comida",
             raw_message,
         )
